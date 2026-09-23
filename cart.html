@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="purchase_milestone">
+<title>Northwind Store — Your basket</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  .tb-basket { border: 1px solid #d5dae0; border-radius: 6px; padding: 14px; margin: 16px 0; }
+  .tb-basket h2 { margin: 0 0 6px; font-size: 16px; }
+  p { color: #3c3c43; }
+</style>
+</head>
+<body>
+<header><h1>Your basket</h1></header>
+
+<main>
+  <!-- The add-to-cart milestone. An isolated node, so its text does count towards page
+       identity: "one item in your basket" must stay distinguishable from the empty state. -->
+  <div class="tb-basket" id="tb-basket">
+    <h2 id="tb-basket-state">One item in your basket</h2>
+    <p id="tb-basket-item">Loading your selection…</p>
+  </div>
+
+  <p><a href="shop.html" id="tb-back-to-shop">Keep shopping</a></p>
+</main>
+
+<script>
+  var NAMES = { alpha: 'Alpha sleeve', beta: 'Beta stand', gamma: 'Gamma cable', delta: 'Delta adapter' };
+  var sku = new URLSearchParams(window.location.search).get('sku');
+  document.getElementById('tb-basket-item').textContent = NAMES[sku] || 'Alpha sleeve';
+</script>
+</body>
+</html>

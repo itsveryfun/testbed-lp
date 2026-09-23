@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="brand">
+<title>Northwind Lending — Rates and terms</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0 0 4px; font-size: 20px; }
+  header p { margin: 0; opacity: .85; }
+  main { padding: 0 16px 40px; }
+  section { margin: 22px 0; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  p { color: #3c3c43; margin: 0 0 12px; }
+  .tb-hero { height: 220px; background: linear-gradient(135deg, #10603a, #2a9d6b); border-radius: 8px;
+             margin: 16px 0; display: flex; align-items: center; justify-content: center; color: #fff; }
+  .tb-long { height: 700px; background: linear-gradient(#fbfbfb, #f2f2f2); border: 1px dashed #e0e0e0;
+             border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9a9a9e; }
+  [role="tablist"] { display: flex; gap: 6px; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px; }
+  [role="tab"] { border: 1px solid #d5dae0; background: #fff; padding: 6px 12px; border-radius: 4px; }
+  [role="tab"][aria-selected="true"] { background: #10603a; color: #fff; border-color: #10603a; }
+  #tb-spec-panel { display: flex; gap: 8px; margin-top: 12px; }
+  #tb-spec-panel button { border: 1px solid #d5dae0; background: #f7f9f8; padding: 8px 10px; border-radius: 4px; }
+  details { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; }
+  summary { cursor: pointer; font-weight: 600; }
+  nav.tb-scenarios a { display: block; padding: 8px 0; }
+  .tb-contact a { display: inline-block; margin-right: 12px; padding: 8px 12px; border: 1px solid #d5dae0;
+                  border-radius: 4px; text-decoration: none; color: #10603a; }
+  footer { padding: 16px; color: #8a8a8e; font-size: 13px; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Northwind Lending</h1>
+  <p>Fixed-rate personal financing, no origination fee</p>
+</header>
+
+<main>
+  <!-- Jumps to an anchor inside this document: carries the `hash_href` in-page signal, so it
+       is one of the few controls eligible as an ordinary-PV candidate. -->
+  <p><a href="#tb-spec" id="tb-jump-spec">Skip to the rate table</a></p>
+
+  <div class="tb-hero"><strong>4.9% APR representative</strong></div>
+
+  <section>
+    <h2>What we actually check</h2>
+    <p>Income stability, existing obligations and how long you have held your current account.
+       We do not price on postcode and we do not resell your application.</p>
+    <p>Decisions are returned the same business day. Funds settle on the next one.</p>
+  </section>
+
+  <section id="tb-spec">
+    <h2>Compare terms</h2>
+    <!-- Three sibling tabs. Switching one swaps the text of the three buttons in the panel
+         below and nothing else; the platform must treat that as the same page state showing
+         other content, not as a new state. -->
+    <div role="tablist" aria-label="Term length">
+      <button role="tab" id="tb-tab-24" aria-selected="true" aria-controls="tb-spec-panel" type="button">24 months</button>
+      <button role="tab" id="tb-tab-36" aria-selected="false" aria-controls="tb-spec-panel" type="button">36 months</button>
+      <button role="tab" id="tb-tab-60" aria-selected="false" aria-controls="tb-spec-panel" type="button">60 months</button>
+    </div>
+    <div id="tb-spec-panel">
+      <button id="tb-spec-a" type="button" data-toggle="spec">Monthly 438</button>
+      <button id="tb-spec-b" type="button" data-toggle="spec">Total 10512</button>
+      <button id="tb-spec-c" type="button" data-toggle="spec">APR 4.9%</button>
+    </div>
+  </section>
+
+  <section>
+    <details open>
+      <!-- `summary` carries a button role so it is collected at all, but a PV candidate has
+           to be a <button> or an <a>: tag filtering happens before the hint check, so this
+           control is silently outside the pool however good its signal is. It stays here as
+           the control that proves that. -->
+      <summary id="tb-details-summary" role="button">Fees and early repayment</summary>
+      <p>No arrangement fee. Early settlement costs 28 days of interest on the outstanding
+         balance, calculated daily.</p>
+      <!-- Inside <details>, and a real button: this is the eligible form of the same signal.
+           The element must be open, or it has no box and is never collected. -->
+      <button id="tb-details-more" type="button">Show a worked example</button>
+    </details>
+  </section>
+
+  <div class="tb-long">Editorial content continues</div>
+
+  <section>
+    <h2>Eligibility in plain terms</h2>
+    <p>Eighteen or over, resident for at least three years, and not currently in a formal
+       debt arrangement. That is the whole list.</p>
+  </section>
+
+  <div class="tb-long">Editorial content continues</div>
+
+  <section>
+    <h2>Other journeys on this site</h2>
+    <!-- Ordinary same-page navigation. These carry no in-page signal at all, which is the
+         point: they must be refused as PV candidates with `no_in_page_signal`. -->
+    <nav class="tb-scenarios">
+      <a href="form.html" id="tb-go-form">Request a quote</a>
+      <a href="form-modal.html" id="tb-go-modal">Apply in a dialog</a>
+      <a href="register.html" id="tb-go-register">Create an account</a>
+      <a href="shop.html" id="tb-go-shop">Accessory store</a>
+      <a href="ads.html" id="tb-go-ads">Partner offers</a>
+      <a href="menu.html" id="tb-go-menu">Product menu</a>
+      <a href="slow-consent.html" id="tb-go-consent">Regional notice</a>
+      <a href="submit-unknown.html" id="tb-go-unknown">Callback request</a>
+    </nav>
+  </section>
+
+  <section class="tb-contact">
+    <h2>Talk to us</h2>
+    <!-- Native-app and telephony entry points. Every one of these must be refused before the
+         in-page-signal check even runs, so their rejection code is the scheme, not the hint. -->
+    <a href="tel:+15550100" id="tb-contact-call">Call an adviser</a>
+    <a href="whatsapp://send?phone=15550100" id="tb-contact-im">Message us</a>
+    <a href="intent://open#Intent;scheme=northwind;package=com.example.northwind;end" id="tb-contact-app">Open the app</a>
+    <a href="market://details?id=com.example.northwind" id="tb-contact-store">Get the app</a>
+  </section>
+</main>
+
+<footer>Testbed landing — synthetic advertiser, no real product and no real lead capture.</footer>
+
+<script>
+  var TERMS = {
+    'tb-tab-24': ['Monthly 438', 'Total 10512', 'APR 4.9%'],
+    'tb-tab-36': ['Monthly 302', 'Total 10872', 'APR 5.2%'],
+    'tb-tab-60': ['Monthly 191', 'Total 11460', 'APR 5.8%']
+  };
+  var PANEL_IDS = ['tb-spec-a', 'tb-spec-b', 'tb-spec-c'];
+  Object.keys(TERMS).forEach(function (tabId) {
+    document.getElementById(tabId).addEventListener('click', function () {
+      Object.keys(TERMS).forEach(function (other) {
+        document.getElementById(other).setAttribute('aria-selected', String(other === tabId));
+      });
+      TERMS[tabId].forEach(function (text, index) {
+        document.getElementById(PANEL_IDS[index]).textContent = text;
+      });
+    });
+  });
+</script>
+</body>
+</html>

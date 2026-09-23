@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="register">
+<title>Northwind Lending — Create an account</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  label { display: block; margin: 14px 0 4px; font-weight: 600; font-size: 14px; }
+  input, select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #d5dae0;
+                  border-radius: 4px; font-size: 15px; background: #fff; }
+  .tb-check { display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; font-weight: 400; }
+  .tb-check input { width: auto; }
+  button[type="submit"] { margin-top: 20px; width: 100%; padding: 13px; border: 0; border-radius: 4px;
+                          background: #10603a; color: #fff; font-size: 16px; }
+</style>
+</head>
+<body>
+<header><h1>Create an account</h1></header>
+
+<main>
+  <p>An account keeps your application and documents in one place.</p>
+
+  <form id="tb-register-form" novalidate>
+    <label for="tb-reg-email">Email</label>
+    <input id="tb-reg-email" name="email" type="email" autocomplete="email" required>
+
+    <!-- Required but unfillable by design: the fill gate refuses password controls outright,
+         and the profile catalog has nothing that could supply one. -->
+    <label for="tb-reg-password">Password</label>
+    <input id="tb-reg-password" name="password" type="password" autocomplete="new-password" required>
+
+    <!-- A real `date` control whose semantics name a birthday, so it maps onto the catalog's
+         `birth_date`. Note the action type stays `input`: the inspection fills dates. -->
+    <label for="tb-reg-dob">Date of birth</label>
+    <input id="tb-reg-dob" name="birth_date" type="date" required>
+
+    <label for="tb-reg-region">State or province</label>
+    <select id="tb-reg-region" name="region" required>
+      <option value="">Choose one</option>
+      <option>California</option>
+      <option>New York</option>
+      <option>Texas</option>
+      <option>Washington</option>
+    </select>
+
+    <!-- Clicking a checkbox is recorded as a `check` action, not a bare click, and a checkbox
+         never becomes a profile-backed binding. -->
+    <label class="tb-check" for="tb-reg-agree">
+      <input id="tb-reg-agree" name="agree" type="checkbox" required>
+      <span>I have read the terms and the privacy notice.</span>
+    </label>
+
+    <button type="submit" id="tb-register-submit">Create account</button>
+  </form>
+</main>
+
+<script>
+  document.getElementById('tb-register-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    window.location.assign('confirm.html');
+  });
+</script>
+</body>
+</html>

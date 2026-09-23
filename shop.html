@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="purchase">
+<title>Northwind Store — Accessories</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  .tb-products { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .tb-products button { text-align: left; padding: 12px; border: 1px solid #d5dae0; border-radius: 6px;
+                        background: #fff; font: inherit; }
+  .tb-products strong { display: block; font-size: 15px; }
+  .tb-products span { color: #6a6a6e; font-size: 13px; }
+  .tb-long { height: 560px; background: linear-gradient(#fbfbfb, #f2f2f2); border: 1px dashed #e0e0e0;
+             border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9a9a9e; }
+</style>
+</head>
+<body>
+<header><h1>Accessories</h1></header>
+
+<main>
+  <p>Four items, one basket. Nothing here charges a card.</p>
+
+  <!-- Four sibling buttons under one parent. That makes them list content: their text must not
+       contribute to page identity, or every restock would mint a new page state that no
+       predicate could tell from its peers. -->
+  <div class="tb-products">
+    <button id="tb-add-alpha" type="button" data-sku="alpha">
+      <strong>Alpha sleeve</strong><span>Add to cart — 39</span>
+    </button>
+    <button id="tb-add-beta" type="button" data-sku="beta">
+      <strong>Beta stand</strong><span>Add to cart — 59</span>
+    </button>
+    <button id="tb-add-gamma" type="button" data-sku="gamma">
+      <strong>Gamma cable</strong><span>Add to cart — 19</span>
+    </button>
+    <button id="tb-add-delta" type="button" data-sku="delta">
+      <strong>Delta adapter</strong><span>Add to cart — 29</span>
+    </button>
+  </div>
+
+  <div class="tb-long">Shipping and returns</div>
+
+  <p>Delivery is two to four working days. Returns are accepted unopened for 30 days.</p>
+</main>
+
+<script>
+  // Add-to-cart lives outside any form and navigates in script, so it is a genuine journey
+  // step rather than a form submission the safety gate has to refuse.
+  ['alpha', 'beta', 'gamma', 'delta'].forEach(function (sku) {
+    document.getElementById('tb-add-' + sku).addEventListener('click', function () {
+      window.location.assign('cart.html?sku=' + sku);
+    });
+  });
+</script>
+</body>
+</html>

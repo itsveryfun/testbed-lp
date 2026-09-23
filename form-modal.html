@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="same_url_dialog">
+<title>Northwind Lending — Apply</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  #tb-open-dialog { margin: 18px 0; padding: 13px 18px; border: 0; border-radius: 4px;
+                    background: #10603a; color: #fff; font-size: 16px; }
+  .tb-long { height: 620px; background: linear-gradient(#fbfbfb, #f2f2f2); border: 1px dashed #e0e0e0;
+             border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9a9a9e; }
+  #tb-dialog { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+               align-items: center; justify-content: center; z-index: 40; }
+  #tb-dialog.tb-open { display: flex; }
+  .tb-dialog-card { background: #fff; border-radius: 8px; padding: 18px; width: 300px; position: relative; }
+  .tb-dialog-card h2 { margin: 0 0 8px; font-size: 17px; }
+  label { display: block; margin: 12px 0 4px; font-weight: 600; font-size: 14px; }
+  input { width: 100%; box-sizing: border-box; padding: 9px; border: 1px solid #d5dae0; border-radius: 4px; }
+  #tb-dialog-submit { margin-top: 16px; width: 100%; padding: 12px; border: 0; border-radius: 4px;
+                      background: #10603a; color: #fff; font-size: 15px; }
+  #tb-dialog-close { position: absolute; top: 8px; right: 8px; border: 0; background: transparent;
+                     font-size: 14px; color: #6a6a6e; }
+</style>
+</head>
+<body>
+<header><h1>Apply for financing</h1></header>
+
+<main>
+  <p>The application form opens on this page. The address does not change, so the platform has
+     to tell the two interaction stages apart from page evidence alone.</p>
+
+  <!-- `aria-expanded` plus `aria-controls` is the strongest in-page signal there is: this
+       control governs another region of the same document. -->
+  <button id="tb-open-dialog" type="button" aria-expanded="false" aria-controls="tb-dialog">Apply now</button>
+
+  <div class="tb-long">Product detail continues</div>
+
+  <p>Applications are assessed by a person. Nothing here is automated scoring.</p>
+</main>
+
+<!-- A business dialog, not a consent wall: it carries the form the journey needs, so the
+     generic blocker rules must leave it alone even though it matches `[role="dialog"]` and
+     exposes a control whose text reads "Close". -->
+<div id="tb-dialog" role="dialog" aria-modal="true" aria-labelledby="tb-dialog-title">
+  <div class="tb-dialog-card">
+    <button id="tb-dialog-close" type="button">Close</button>
+    <h2 id="tb-dialog-title">Your details</h2>
+    <form id="tb-dialog-form" novalidate>
+      <label for="tb-dialog-email">Email</label>
+      <input id="tb-dialog-email" name="email" type="email" autocomplete="email" required>
+
+      <label for="tb-dialog-phone">Phone</label>
+      <input id="tb-dialog-phone" name="phone" type="tel" autocomplete="tel" required>
+
+      <button type="submit" id="tb-dialog-submit">Send application</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  var dialog = document.getElementById('tb-dialog');
+  var opener = document.getElementById('tb-open-dialog');
+  opener.addEventListener('click', function () {
+    dialog.classList.add('tb-open');
+    opener.setAttribute('aria-expanded', 'true');
+  });
+  document.getElementById('tb-dialog-close').addEventListener('click', function () {
+    dialog.classList.remove('tb-open');
+    opener.setAttribute('aria-expanded', 'false');
+  });
+  document.getElementById('tb-dialog-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    window.location.assign('https://lp2.appicstar.com/done.html');
+  });
+</script>
+</body>
+</html>

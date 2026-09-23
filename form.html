@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="form_lead">
+<title>Northwind Lending — Request a quote</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  form { margin-top: 12px; }
+  label { display: block; margin: 14px 0 4px; font-weight: 600; font-size: 14px; }
+  input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #d5dae0; border-radius: 4px; font-size: 15px; }
+  .tb-hint { font-size: 13px; color: #8a8a8e; margin: 4px 0 0; }
+  button[type="submit"] { margin-top: 20px; width: 100%; padding: 13px; border: 0; border-radius: 4px;
+                          background: #10603a; color: #fff; font-size: 16px; }
+</style>
+</head>
+<body>
+<header><h1>Request a quote</h1></header>
+
+<main>
+  <p>Tell us how to reach you. An adviser replies within one business day.</p>
+
+  <!-- No `action`: static hosting cannot accept a POST, and a GET form would push every typed
+       value into the query string, which the platform must never store. The page navigates in
+       its own submit handler instead. -->
+  <form id="tb-form" novalidate>
+    <label for="tb-name">Full name</label>
+    <input id="tb-name" name="name" autocomplete="name" required>
+
+    <!-- Two controls, one profile field. Coverage is judged per control, so this form must
+         produce two separate bindings rather than one deduplicated `email`. -->
+    <label for="tb-email">Email</label>
+    <input id="tb-email" name="email" type="email" autocomplete="email" required>
+
+    <label for="tb-email-confirm">Confirm email</label>
+    <input id="tb-email-confirm" name="email_confirm" type="email" required>
+
+    <label for="tb-phone">Phone</label>
+    <input id="tb-phone" name="phone" type="tel" autocomplete="tel" required>
+
+    <label for="tb-city">City</label>
+    <input id="tb-city" name="city" autocomplete="address-level2" required>
+
+    <!-- Required, but nothing in the fixed nine-field profile catalog can supply it. The
+         binding must survive as `missing` with a stable reason, not silently disappear. -->
+    <label for="tb-company">Company registration number</label>
+    <input id="tb-company" name="company_registration" required>
+    <p class="tb-hint">Required for business applications.</p>
+
+    <!-- A split-name control. The catalog holds one whole `name`, which cannot safely satisfy
+         given-name semantics, so this must also land as `missing`. -->
+    <label for="tb-given">Given name as printed on your ID</label>
+    <input id="tb-given" name="given_name" autocomplete="given-name" required>
+
+    <button type="submit" id="tb-submit">Request information</button>
+  </form>
+</main>
+
+<script>
+  document.getElementById('tb-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    // Cross-host second hop. Same registrable domain, different host, so the journey stays
+    // one session while `page_states[].host` genuinely changes.
+    window.location.assign('https://lp2.appicstar.com/done.html');
+  });
+</script>
+</body>
+</html>
