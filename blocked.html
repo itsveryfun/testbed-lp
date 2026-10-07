@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="fullscreen_blocker">
+<title>Northwind Lending — Balance transfer offer</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  .tb-cta { display: inline-block; padding: 13px 20px; border-radius: 4px; background: #10603a;
+            color: #fff; text-decoration: none; font-size: 16px; }
+  .tb-long { height: 800px; background: linear-gradient(#fbfbfb, #f2f2f2); border: 1px dashed #e0e0e0;
+             border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9a9a9e; }
+  /* Hidden until the timer fires, so a snapshot taken at first paint cannot see it. */
+  #tb-blocker { display: none; }
+  #tb-blocker.tb-open { display: flex; position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 60;
+                        align-items: center; justify-content: center; padding: 24px;
+                        background: rgba(12, 16, 14, .72); }
+  .tb-blocker-card { background: #fff; border-radius: 8px; padding: 20px; max-width: 320px; }
+  .tb-blocker-card h2 { margin: 0 0 8px; font-size: 17px; color: #10603a; }
+  .tb-blocker-card p { margin: 0 0 16px; font-size: 14px; }
+  .tb-blocker-card button { width: 100%; border: 0; border-radius: 4px; padding: 12px;
+                            background: #10603a; color: #fff; font-size: 15px; }
+</style>
+</head>
+<body>
+<header><h1>Balance transfer offer</h1></header>
+
+<main>
+  <p>Move an existing balance and pay no interest for the first twelve months. The eligibility
+     notice below interrupts the page a couple of seconds after load and covers the whole
+     viewport until it is closed — including the button that starts the application.</p>
+
+  <!-- The conversion entry point, and the control the wall covers. A plain same-host link with
+       no in-page signal: it is not a PV candidate, it is here to be unreachable while the wall
+       is up and reachable the moment it is gone. -->
+  <p><a class="tb-cta" href="confirm.html" id="tb-blocked-cta">Move my balance</a></p>
+
+  <div class="tb-long">Offer terms continue</div>
+
+  <p>Representative APR applies after the introductory period. Transfers must complete within
+     sixty days of account opening.</p>
+</main>
+
+<!-- Markup, not a native `alert`: a native dialog suspends the page and is handled by the
+     browser's own dialog channel, which says nothing about whether the policy's blocker rules
+     work. This one is a DOM element with a dismiss control, so it can be detected, closed and
+     asserted on exactly like the wall a real advertiser ships. -->
+<div id="tb-blocker" role="dialog" aria-modal="true" aria-labelledby="tb-blocker-title">
+  <div class="tb-blocker-card">
+    <h2 id="tb-blocker-title">Before you continue</h2>
+    <p>This offer is subject to regional eligibility rules. Confirm you have read them.</p>
+    <!-- Deliberately no input of any kind in here. One form control would make the platform
+         read this as a business dialog and protect it from the generic close rules, which is
+         the opposite scenario and already covered by form-modal.html. -->
+    <button type="button" id="tb-blocker-dismiss">Got it</button>
+  </div>
+</div>
+
+<script>
+  var wall = document.getElementById('tb-blocker');
+  // Late on purpose: the wall has to be up before anything reaches the CTA, so a run that does
+  // not clear it makes no progress at all. Unlike the cookie strip on slow-consent.html this
+  // one covers the viewport and eats every click — that is what turns "the generic blocker
+  // rules fire" into a claim a test can fail on.
+  setTimeout(function () {
+    wall.classList.add('tb-open');
+    document.documentElement.style.overflow = 'hidden';
+  }, 1800);
+  document.getElementById('tb-blocker-dismiss').addEventListener('click', function () {
+    document.documentElement.style.overflow = '';
+    // Removed rather than hidden: the policy re-resolves the locator it detected with to decide
+    // the wall is gone, and "no such element" is the unambiguous form of absent.
+    wall.remove();
+  });
+</script>
+</body>
+</html>

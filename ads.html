@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="ad_clickout">
+<title>Northwind Lending — Partner offers</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  .ad-wrap { border: 1px solid #d5dae0; border-radius: 6px; padding: 12px; margin: 16px 0; background: #fafbfc; }
+  .ad-label { display: block; font-size: 11px; letter-spacing: .08em; color: #8a8a8e; margin-bottom: 8px; }
+  .ad-wrap a { display: inline-block; padding: 10px 14px; background: #b8531f; color: #fff;
+               border-radius: 4px; text-decoration: none; }
+  ins.adsbygoogle { display: block; min-height: 120px; background: #f2f4f6; border: 1px dashed #d5dae0; }
+  .tb-editorial a { color: #10603a; }
+</style>
+</head>
+<body>
+<header><h1>Partner offers</h1></header>
+
+<main>
+  <p>This page carries third-party advertising. Nothing on it may be clicked by an automated
+     inspection: an ad click bills someone, and the evidence that advertising is the commercial
+     model can be established without producing one.</p>
+
+  <!-- A filled sponsored placement. Every control inside it inherits `inside_ad_slot`, which
+       is refused before the in-page-signal check ever runs. -->
+  <div class="ad-wrap" data-ad-slot="hero" data-ad-id="tb-lp-ad-hero">
+    <span class="ad-label">ADVERTISEMENT</span>
+    <strong>Consolidate three cards into one payment</strong>
+    <p>Representative 7.4% APR. Partner offer.</p>
+    <a href="https://ad-target.example/offer?src=testbed" id="tb-ad-link">See the offer</a>
+  </div>
+
+  <div class="tb-editorial">
+    <h2>How we pick partners</h2>
+    <p>Partners are screened annually. We publish the screening criteria and the list of firms
+       that failed it. <a href="index.html" id="tb-editorial-link">Read the criteria</a>.</p>
+  </div>
+
+  <!-- An unfilled network container: an ad marker with no creative and no clickable control. -->
+  <ins class="adsbygoogle" data-ad-client="ca-pub-testbed" data-ad-slot="sidebar"></ins>
+
+  <p>Advertising revenue keeps the comparison tables free to use.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="pv_guidance">
+<title>Northwind Lending — Savings guide</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; display: flex; align-items: center; gap: 12px; }
+  header h1 { margin: 0; font-size: 20px; flex: 1; }
+  #tb-guide-menu { border: 1px solid rgba(255,255,255,.5); background: transparent; color: #fff;
+                   border-radius: 4px; padding: 7px 12px; font-size: 14px; }
+  #tb-guide-drawer { display: none; background: #f7f9f8; border-bottom: 1px solid #d5dae0; padding: 8px 16px; }
+  #tb-guide-drawer.tb-open { display: block; }
+  #tb-guide-drawer a { display: block; padding: 10px 0; border-bottom: 1px solid #e6eae8; }
+  #tb-guide-drawer a:last-child { border-bottom: 0; }
+  main { padding: 0 16px 120px; }
+  p { color: #3c3c43; }
+  h2 { font-size: 17px; margin: 22px 0 8px; color: #10603a; }
+  .tb-rate-strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory;
+                   padding-bottom: 6px; }
+  .tb-rate-card { flex: 0 0 62%; box-sizing: border-box; scroll-snap-align: start; padding: 14px;
+                  border: 1px solid #d5dae0; border-radius: 6px; background: #f7f9f8; }
+  .tb-rate-card b { display: block; font-size: 22px; color: #10603a; }
+  #tb-guide-articles ul { list-style: none; margin: 0; padding: 0; }
+  #tb-guide-articles li { border-bottom: 1px solid #e6eae8; }
+  #tb-guide-articles a { display: block; padding: 11px 0; }
+  form { margin-top: 12px; }
+  label { display: block; margin: 14px 0 4px; font-weight: 600; font-size: 14px; }
+  input:not([type="radio"]), select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #d5dae0;
+                                      border-radius: 4px; font-size: 15px; background: #fff; }
+  fieldset { border: 0; margin: 14px 0 0; padding: 0; }
+  legend { font-weight: 600; font-size: 14px; padding: 0; }
+  fieldset label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; margin: 6px 18px 0 0; }
+  button[type="submit"] { margin-top: 20px; width: 100%; padding: 13px; border: 0; border-radius: 4px;
+                          background: #10603a; color: #fff; font-size: 16px; }
+  .tb-cookie-banner { position: fixed; left: 0; right: 0; bottom: 0; background: #1c1c1e; color: #fff;
+                      padding: 16px; display: flex; gap: 12px; align-items: center; z-index: 50; }
+  .tb-cookie-banner p { color: #e8e8ea; margin: 0; flex: 1; font-size: 13px; }
+  .tb-cookie-banner button { border: 0; border-radius: 4px; padding: 10px 16px; background: #2a9d6b;
+                             color: #fff; font-size: 14px; }
+</style>
+</head>
+<body>
+<!-- The v4 PV-guidance page: one of each thing a guidance page is made of. A cookie banner to
+     close, links that only exist once a menu is open, a form a group can fill and submit, a
+     list of same-kind links whose element ids are different on every load, and a strip that
+     scrolls sideways for a swipe. -->
+<header>
+  <h1>Savings guide</h1>
+  <!-- A navigation with a precondition: the drawer links are not in the layout until this is
+       pressed, so a snapshot of the page as loaded cannot see them — only a probe that opens
+       the menu can. -->
+  <button id="tb-guide-menu" type="button" aria-expanded="false" aria-controls="tb-guide-drawer">Menu</button>
+</header>
+
+<nav id="tb-guide-drawer">
+  <a href="shop.html" id="tb-guide-drawer-shop">Accessory store</a>
+  <a href="menu.html" id="tb-guide-drawer-products">All products</a>
+</nav>
+
+<main>
+  <p>Five short reads on putting money aside, and the full guide by email if you want it.</p>
+
+  <!-- A swipe target: a strip of rate cards wider than the screen that scrolls sideways. The
+       editor offers a swipe only on an element that really scrolls on that axis, and the strip
+       holds no link or button, so nothing the inspection extracts from this page changes. -->
+  <section aria-labelledby="tb-guide-rates-title">
+    <h2 id="tb-guide-rates-title">Today's rates</h2>
+    <div id="tb-guide-rates" class="tb-rate-strip">
+      <div class="tb-rate-card"><b>4.10%</b>1-year fixed deposit</div>
+      <div class="tb-rate-card"><b>3.85%</b>2-year fixed deposit</div>
+      <div class="tb-rate-card"><b>3.20%</b>Easy-access saver</div>
+      <div class="tb-rate-card"><b>3.60%</b>90-day notice account</div>
+      <div class="tb-rate-card"><b>4.45%</b>Regular saver</div>
+    </div>
+  </section>
+
+  <!-- Five links of one kind. They must come out as ONE random-pick navigation, not five, and
+       its locator must not lean on the ids below: those are regenerated on every load, the way
+       a framework's generated keys are. -->
+  <section id="tb-guide-articles" aria-labelledby="tb-guide-articles-title">
+    <h2 id="tb-guide-articles-title">Latest articles</h2>
+    <ul>
+      <li><a href="articles/1.html">How fixed-rate deposits work</a></li>
+      <li><a href="articles/2.html">Easy-access or notice account</a></li>
+      <li><a href="articles/3.html">Building an emergency fund</a></li>
+      <li><a href="articles/4.html">What the base rate means for you</a></li>
+      <li><a href="articles/5.html">Saving for a home deposit</a></li>
+    </ul>
+  </section>
+
+  <h2>Get the full guide</h2>
+  <!-- No `action`, for the reason given on form.html: the page navigates in its own submit
+       handler, and no typed value ever reaches a URL. -->
+  <form id="tb-guide-form" novalidate>
+    <label for="tb-guide-name">Full name</label>
+    <input id="tb-guide-name" name="name" autocomplete="name" required>
+
+    <label for="tb-guide-email">Email</label>
+    <input id="tb-guide-email" name="email" type="email" autocomplete="email" required>
+
+    <!-- Gender as a select: the group has to pick the option matching the profile, so both
+         sides must be recognisable and the empty first option must not count as either. -->
+    <label for="tb-guide-gender">Gender</label>
+    <select id="tb-guide-gender" name="gender">
+      <option value="">Prefer not to say</option>
+      <option value="female">Female</option>
+      <option value="male">Male</option>
+    </select>
+
+    <!-- A required radio group no profile field can answer. The form cannot be sent with it
+         empty, so the group has to check one, and the first is as good as any. -->
+    <fieldset>
+      <legend>Best time to reach you</legend>
+      <label><input type="radio" id="tb-guide-time-morning" name="reach_time" value="morning" required> Morning</label>
+      <label><input type="radio" id="tb-guide-time-evening" name="reach_time" value="evening" required> Evening</label>
+    </fieldset>
+
+    <button type="submit" id="tb-guide-submit">Get the guide</button>
+  </form>
+</main>
+
+<!-- Present at load, outside the form, holding no input: a generic blocker. The id carries
+     "cookie" so the operator sees it named as a cookie banner. Consent is remembered the way real
+     banners remember it, so once accepted it does not come back on the next load — the probe
+     pass, which reloads this page after every link it follows, relies on that. -->
+<div id="tb-guide-cookie" class="tb-cookie-banner">
+  <p>We use cookies to remember your reading list and nothing else.</p>
+  <button type="button" id="tb-guide-accept">Accept</button>
+</div>
+
+<script>
+  var CONSENT_KEY = 'tb-guide-consent';
+  var banner = document.getElementById('tb-guide-cookie');
+  if (localStorage.getItem(CONSENT_KEY) === '1') {
+    banner.remove();
+  } else {
+    document.getElementById('tb-guide-accept').addEventListener('click', function () {
+      localStorage.setItem(CONSENT_KEY, '1');
+      banner.remove();
+    });
+  }
+
+  var toggle = document.getElementById('tb-guide-menu');
+  var drawer = document.getElementById('tb-guide-drawer');
+  toggle.addEventListener('click', function () {
+    var open = drawer.classList.toggle('tb-open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  // A fresh id per link per load, always with a run of digits in it. A locator that keyed on
+  // one of these would find nothing on the next load.
+  Array.prototype.forEach.call(document.querySelectorAll('#tb-guide-articles a'), function (link) {
+    link.id = 'tb-post-' + String(Math.floor(Math.random() * 900000000) + 100000000);
+  });
+
+  document.getElementById('tb-guide-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    window.location.assign('https://lp2.appicstar.com/done.html');
+  });
+</script>
+</body>
+</html>

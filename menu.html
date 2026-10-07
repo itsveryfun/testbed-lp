@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="dependency_menu">
+<title>Northwind Lending — Products</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; display: flex; align-items: center; gap: 12px; }
+  header h1 { margin: 0; font-size: 20px; flex: 1; }
+  #tb-menu-toggle { border: 1px solid rgba(255,255,255,.5); background: transparent; color: #fff;
+                    border-radius: 4px; padding: 7px 12px; font-size: 14px; }
+  #tb-menu { display: none; background: #f7f9f8; border-bottom: 1px solid #d5dae0; padding: 8px 16px; }
+  #tb-menu.tb-open { display: block; }
+  #tb-menu a { display: block; padding: 10px 0; border-bottom: 1px solid #e6eae8; }
+  #tb-menu a:last-child { border-bottom: 0; }
+  main { padding: 0 16px 40px; }
+  p { color: #3c3c43; }
+  .tb-long { height: 600px; background: linear-gradient(#fbfbfb, #f2f2f2); border: 1px dashed #e0e0e0;
+             border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9a9a9e; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Products</h1>
+  <!-- The menu contents do not exist in the layout until this is pressed, so the item below
+       can only be reached through a verifiable prerequisite step. -->
+  <button id="tb-menu-toggle" type="button" aria-expanded="false" aria-controls="tb-menu">Menu</button>
+</header>
+
+<nav id="tb-menu">
+  <a href="confirm.html" id="tb-menu-item">Fixed-rate term deposit</a>
+  <a href="shop.html" id="tb-menu-shop">Accessory store</a>
+</nav>
+
+<main>
+  <p>Everything we offer sits behind the menu. There is no second route to it on this page,
+     which is exactly what a dependency-bearing step has to look like.</p>
+
+  <div class="tb-long">Product overview continues</div>
+
+  <p>Term deposits are fixed for the whole period. Early withdrawal is not available.</p>
+</main>
+
+<script>
+  var toggle = document.getElementById('tb-menu-toggle');
+  var menu = document.getElementById('tb-menu');
+  toggle.addEventListener('click', function () {
+    var open = menu.classList.toggle('tb-open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+</script>
+</body>
+</html>

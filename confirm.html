@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="same_host_confirmation">
+<title>Northwind Lending — Confirmed</title>
+<style>
+  body { margin: 0; font: 15px/1.6 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c1e; }
+  header { padding: 18px 16px; background: #10603a; color: #fff; }
+  header h1 { margin: 0; font-size: 20px; }
+  main { padding: 0 16px 40px; }
+  .tb-confirm { border: 1px solid #2a9d6b; background: #f2faf6; border-radius: 6px; padding: 16px; margin: 18px 0; }
+  .tb-confirm h2 { margin: 0 0 6px; font-size: 17px; color: #10603a; }
+  p { color: #3c3c43; }
+</style>
+</head>
+<body>
+<header><h1>Confirmed</h1></header>
+
+<main>
+  <!-- A same-host terminal state. Its heading sits on an isolated node, so the text is part of
+       page identity and this state stays distinguishable from every other page on the host. -->
+  <div class="tb-confirm">
+    <h2 id="tb-confirm-state">Your account is ready</h2>
+    <p>We sent a verification link. It expires in 24 hours.</p>
+  </div>
+
+  <p><a href="index.html" id="tb-confirm-home">Back to rates</a></p>
+</main>
+</body>
+</html>
