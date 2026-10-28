@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="testbed-scenario" content="browser_api_diagnostics">
+<title>浏览器 API 检测 · Landing Testbed</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #202427; background: #fff; font: 14px/1.6 system-ui, sans-serif; letter-spacing: 0; }
+  header { border-bottom: 1px solid #dce1e4; padding: 20px 24px 16px; }
+  a { color: #09684c; }
+  h1 { font-size: 24px; margin: 8px 0; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  main { max-width: 1500px; margin: auto; padding: 20px 24px 48px; }
+  .tb-meta { color: #59636b; overflow-wrap: anywhere; }
+  .tb-toolbar, .tb-manual-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+  button, input, select, textarea { font: inherit; border: 1px solid #bdc7ce; border-radius: 4px; background: #fff; color: inherit; }
+  button { min-height: 40px; padding: 7px 14px; cursor: pointer; }
+  button:hover { background: #eef4f1; }
+  button:disabled { opacity: .55; cursor: wait; }
+  #tb-rerun { background: #11674d; color: #fff; border-color: #11674d; }
+  label { display: grid; gap: 4px; font-size: 12px; color: #59636b; min-width: 0; }
+  input, select { min-height: 40px; padding: 7px 10px; min-width: 0; width: 100%; }
+  .tb-search { flex: 1 1 240px; }
+  .tb-filter { flex: 0 1 160px; }
+  #tb-summary { display: flex; gap: 10px 20px; flex-wrap: wrap; margin: 20px 0 10px; font-variant-numeric: tabular-nums; }
+  .tb-notice { color: #59636b; min-height: 24px; margin: 8px 0 18px; }
+  .tb-notice:empty { display: none; }
+  .tb-manual { border-top: 1px solid #dce1e4; border-bottom: 1px solid #dce1e4; padding: 16px 0; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th { text-align: left; color: #59636b; font-size: 12px; background: #f3f5f6; }
+  td, th { padding: 10px 12px; border-bottom: 1px solid #e4e8eb; vertical-align: top; overflow-wrap: anywhere; }
+  th:nth-child(1) { width: 27%; }
+  th:nth-child(2) { width: 10%; }
+  th:nth-child(3) { width: 11%; }
+  th:nth-child(4) { width: 13%; }
+  th:nth-child(5) { width: 39%; }
+  .tb-api { font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+  .tb-category, .tb-detail { display: block; font-size: 12px; color: #59636b; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .tb-status { font-weight: 600; }
+  [data-status="ok"] .tb-status { color: #096343; }
+  [data-status="present"] .tb-status { color: #145ea3; }
+  [data-status="blocked"] .tb-status, [data-status="timeout"] .tb-status { color: #86570c; }
+  [data-status="error"] .tb-status { color: #b12737; }
+  #tb-copy-fallback { width: 100%; height: 180px; padding: 10px; margin-bottom: 16px; }
+  #tb-empty { padding: 24px 0; color: #59636b; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid #2877bb; outline-offset: 3px; }
+  @media (max-width: 680px) {
+    header { padding: 16px; }
+    main { padding: 16px 12px 32px; }
+    h1 { font-size: 22px; }
+    .tb-filter { flex: 1 1 120px; }
+    thead { display: none; }
+    tbody, tr { display: block; }
+    tr { display: grid; grid-template-columns: 1fr 1fr; padding: 12px 0; border-bottom: 1px solid #dce1e4; }
+    td { display: block; border: 0; padding: 3px 4px; min-width: 0; }
+    td:first-child, td:last-child { grid-column: 1 / -1; }
+    td:nth-child(4) { grid-column: 1 / -1; }
+    .tb-api { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" id="tb-back-home">Landing Testbed</a>
+  <h1>浏览器 API 检测</h1>
+  <div class="tb-meta" id="tb-run-meta" aria-live="polite"></div>
+</header>
+<main>
+  <div class="tb-toolbar">
+    <label class="tb-search">API / 返回值 / 原因<input type="search" id="tb-search" placeholder="language" autocomplete="off"></label>
+    <label class="tb-filter">状态<select id="tb-status-filter"><option value="all">全部状态</option></select></label>
+    <label class="tb-filter">执行环境<select id="tb-realm-filter"><option value="all">全部环境</option><option value="main">主页面</option><option value="iframe">iframe</option><option value="worker">Worker</option></select></label>
+    <button type="button" id="tb-rerun">重新检测</button>
+    <button type="button" id="tb-copy">复制 JSON</button>
+  </div>
+  <div id="tb-summary" aria-live="polite"></div>
+  <div id="tb-notice" class="tb-notice" role="status"></div>
+  <textarea id="tb-copy-fallback" aria-label="当前检测 JSON" readonly hidden></textarea>
+  <section class="tb-manual" aria-labelledby="tb-manual-title">
+    <h2 id="tb-manual-title">手动授权检测</h2>
+    <div class="tb-manual-actions" id="tb-manual-actions"></div>
+  </section>
+  <table aria-label="API 检测结果">
+    <thead><tr><th>API / 分类</th><th>执行环境</th><th>检测方式</th><th>状态 / 耗时</th><th>实际值 / 原因</th></tr></thead>
+    <tbody id="tb-results"></tbody>
+  </table>
+  <div id="tb-empty" hidden>没有匹配项</div>
+</main>
+<script>
+(function () {
+  'use strict';
+  var AUTO_TIMEOUT = 5000;
+  var MANUAL_TIMEOUT = 15000;
+  var STATUS = {pending: '检测中', ok: '成功', present: '接口存在', unsupported: '不支持',
+    blocked: '被拒绝或限制', timeout: '超时', error: '异常', not_run: '待手动检测', cancelled: '已取消'};
+  var MODE = {presence: '存在性', read: '读取', invoke: '调用'};
+  var REALM = {main: '主页面', iframe: 'iframe', worker: 'Worker'};
+  var state;
+  var generation = 0;
+  var rows = new Map();
+  var renderTimer;
+  var body = document.getElementById('tb-results');
+  var notice = document.getElementById('tb-notice');
+
+  function issue(status, code) {
+    var error = new Error(code);
+    error.probeStatus = status;
+    error.probeReason = code;
+    return error;
+  }
+  function available(value) {
+    if (value === undefined || value === null) throw issue('unsupported', 'api_missing');
+    return value;
+  }
+  function has(object, key) {
+    return object != null && key in object;
+  }
+  function serialize(value) {
+    if (value === undefined) return {type: 'undefined', value: null};
+    if (typeof value === 'number' && !Number.isFinite(value)) return {type: 'number', value: String(value)};
+    return {type: value === null ? 'null' : typeof value,
+      value: JSON.parse(JSON.stringify(value))};
+  }
+  function display(result) {
+    if (!has(result, 'valueType')) return '';
+    if (result.valueType === 'undefined') return 'undefined';
+    return JSON.stringify(result.value, null, 2);
+  }
+  function summary() {
+    var counts = {};
+    Object.keys(STATUS).forEach(function (key) { counts[key] = 0; });
+    state.results.forEach(function (result) { counts[result.status]++; });
+    return counts;
+  }
+  function snapshot() {
+    return JSON.parse(JSON.stringify({schemaVersion: 1, runId: state.runId, startedAt: state.startedAt,
+      finishedAt: state.finishedAt, state: state.phase, summary: summary(), results: state.results,
+      events: state.events}));
+  }
+  Object.defineProperty(window, '__tbApiProbe', {get: snapshot});
+  function event(name, result, reason) {
+    var record = {event: name, run_id: state.runId};
+    if (result) {
+      record.check_id = result.id;
+      record.realm = result.realm;
+      record.status = result.status;
+      record.reason_code = result.reasonCode;
+      record.elapsed_ms = result.elapsedMs;
+    } else {
+      record.reason_code = reason || 'completed';
+    }
+    state.events.push(record);
+    console.info(JSON.stringify(record));
+  }
+  function rowFor(result) {
+    var row = document.createElement('tr');
+    row.id = 'tb-result-' + result.realm + '-' + result.id.replace(/[^a-zA-Z0-9_-]/g, '-');
+    row.dataset.checkId = result.id;
+    row.dataset.realm = result.realm;
+    for (var i = 0; i < 5; i++) row.appendChild(document.createElement('td'));
+    var api = document.createElement('div');
+    api.className = 'tb-api';
+    api.textContent = result.api;
+    row.children[0].appendChild(api);
+    var category = document.createElement('span');
+    category.className = 'tb-category';
+    category.textContent = result.category;
+    row.children[0].appendChild(category);
+    row.children[1].textContent = REALM[result.realm];
+    row.children[2].textContent = MODE[result.mode];
+    row.children[3].appendChild(document.createElement('span')).className = 'tb-status';
+    row.children[3].appendChild(document.createElement('span')).className = 'tb-detail';
+    row.children[4].appendChild(document.createElement('pre'));
+    row.children[4].appendChild(document.createElement('span')).className = 'tb-detail';
+    rows.set(result.realm + ':' + result.id, row);
+    body.appendChild(row);
+    updateRow(result);
+  }
+  function updateRow(result) {
+    var row = rows.get(result.realm + ':' + result.id);
+    row.dataset.status = result.status;
+    row.children[3].children[0].textContent = STATUS[result.status];
+    row.children[3].children[1].textContent = result.elapsedMs == null ? '' : result.elapsedMs + ' ms';
+    row.children[4].children[0].textContent = display(result);
+    row.children[4].children[1].textContent = result.reasonCode +
+      (result.errorName ? ' · ' + result.errorName : '');
+    scheduleRender();
+  }
+  function scheduleRender() {
+    if (renderTimer) return;
+    renderTimer = setTimeout(function () { renderTimer = null; render(); }, 0);
+  }
+  function render() {
+    var counts = summary();
+    var container = document.getElementById('tb-summary');
+    container.textContent = '';
+    Object.keys(counts).forEach(function (key) {
+      var span = document.createElement('span');
+      span.dataset.status = key;
+      span.textContent = STATUS[key] + ' ' + counts[key];
+      container.appendChild(span);
+    });
+    var query = document.getElementById('tb-search').value.trim().toLowerCase();
+    var status = document.getElementById('tb-status-filter').value;
+    var realm = document.getElementById('tb-realm-filter').value;
+    var visible = 0;
+    state.results.forEach(function (result) {
+      var match = (status === 'all' || status === result.status) &&
+        (realm === 'all' || realm === result.realm) &&
+        (!query || [result.api, result.category, display(result), result.reasonCode, result.errorName || '']
+          .join(' ').toLowerCase().indexOf(query) !== -1);
+      rows.get(result.realm + ':' + result.id).hidden = !match;
+      if (match) visible++;
+    });
+    document.getElementById('tb-empty').hidden = visible !== 0;
+    document.getElementById('tb-run-meta').textContent = state.runId + ' · ' + state.startedAt +
+      ' · ' + (state.phase === 'running' ? '自动检测中' : '自动检测完成') + ' · ' + visible + '/' + state.results.length;
+  }
+  function add(probe, realm) {
+    var result = {id: probe.id, api: probe.api || probe.id, category: probe.category, realm: realm,
+      mode: probe.mode || 'read', status: probe.manual ? 'not_run' : 'pending',
+      reasonCode: probe.manual ? 'manual_required' : 'scheduled', elapsedMs: null};
+    state.results.push(result);
+    rowFor(result);
+    return result;
+  }
+  function classify(error) {
+    if (error && error.probeStatus) return {status: error.probeStatus, reason: error.probeReason};
+    var name = error && error.name || 'Error';
+    if (name === 'NotAllowedError' || name === 'SecurityError') return {status: 'blocked', reason: 'access_restricted'};
+    return {status: 'error', reason: 'exception'};
+  }
+  function context(token, result) {
+    var controller = new AbortController();
+    var cleanups = [];
+    var closed = false;
+    function cleanupFailure() {
+      if (generation !== token) return;
+      result.status = 'error';
+      result.reasonCode = 'cleanup_exception';
+      event('api_probe.cleanup.failed', result);
+      updateRow(result);
+    }
+    var ctx = {signal: controller.signal, alive: function () { return !closed && generation === token; },
+      defer: function (fn) { if (closed) fn(); else cleanups.push(fn); },
+      close: function () {
+        if (closed) return;
+        closed = true;
+        controller.abort();
+        cleanups.reverse().forEach(function (fn) {
+          try { Promise.resolve(fn()).catch(cleanupFailure); } catch (error) { cleanupFailure(); }
+        });
+        state.active.delete(ctx);
+      }};
+    state.active.add(ctx);
+    return ctx;
+  }
+  // Start the probe in the click's own stack so user activation survives for gated APIs.
+  function execute(probe, result, token) {
+    var ctx = context(token, result);
+    var started = performance.now();
+    result.status = 'pending';
+    result.reasonCode = 'running';
+    delete result.value;
+    delete result.valueType;
+    delete result.errorName;
+    updateRow(result);
+    return new Promise(function (resolve) {
+      var finished = false;
+      var timer;
+      function finish(value, error) {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        if (generation === token) {
+          result.elapsedMs = Math.round(performance.now() - started);
+          if (error) {
+            var failure = classify(error);
+            result.status = failure.status;
+            result.reasonCode = failure.reason;
+            result.errorName = error.name || 'Error';
+          } else {
+            try {
+              var data = serialize(value);
+              result.value = data.value;
+              result.valueType = data.type;
+              result.status = probe.mode === 'presence' ? 'present' : 'ok';
+              result.reasonCode = probe.mode === 'presence' ? 'interface_present_not_invoked' :
+                probe.mode === 'invoke' ? 'call_completed' : 'read_completed';
+            } catch (serializationError) {
+              result.status = 'error';
+              result.reasonCode = 'serialization_failed';
+              result.errorName = serializationError.name;
+            }
+          }
+          event('api_probe.item.finished', result);
+          updateRow(result);
+        }
+        ctx.close();
+        resolve();
+      }
+      ctx.signal.addEventListener('abort', function () { finish(null, issue('cancelled', 'run_superseded')); }, {once: true});
+      timer = setTimeout(function () { finish(null, issue('timeout', 'deadline_exceeded')); }, probe.manual ? MANUAL_TIMEOUT : AUTO_TIMEOUT);
+      try { Promise.resolve(probe.run(ctx)).then(function (value) { finish(value); }, function (error) { finish(null, error); }); }
+      catch (error) { finish(null, error); }
+    });
+  }
+
+  // This self-contained collector is serialized into both the iframe and the Worker.
+  function identityCollector(emit) {
+    var n = navigator;
+    var properties = ['language', 'languages', 'userAgent', 'appVersion', 'platform', 'vendor',
+      'hardwareConcurrency', 'deviceMemory', 'maxTouchPoints'];
+    var values = {};
+    function capture(key, read) {
+      try {
+        var value = read();
+        values[key] = {status: 'ok', valueType: value === undefined ? 'undefined' : value === null ? 'null' : typeof value,
+          value: value === undefined ? null : value};
+      } catch (error) { values[key] = {status: error.name === 'SecurityError' ? 'blocked' : 'error', errorName: error.name}; }
+    }
+    properties.forEach(function (key) {
+      if (!(key in n)) { values['navigator.' + key] = {status: 'unsupported', reason: 'api_missing'}; return; }
+      capture('navigator.' + key, function () {
+        return key === 'languages' ? Array.from(n[key]) : n[key];
+      });
+    });
+    capture('Intl.DateTimeFormat.resolvedOptions', function () { return Intl.DateTimeFormat().resolvedOptions(); });
+    capture('Date.timezoneOffset', function () { return new Date().getTimezoneOffset(); });
+    capture('navigator.userAgentData', function () {
+      if (!n.userAgentData) return undefined;
+      return {brands: n.userAgentData.brands, mobile: n.userAgentData.mobile, platform: n.userAgentData.platform};
+    });
+    if (values['navigator.userAgentData'].valueType === 'undefined') values['navigator.userAgentData'].status = 'unsupported';
+    emit(values);
+    return Promise.resolve().then(function () {
+      if (!n.userAgentData || typeof n.userAgentData.getHighEntropyValues !== 'function') {
+        values['navigator.userAgentData.highEntropy'] = {status: 'unsupported', reason: 'api_missing'};
+        return null;
+      }
+      return n.userAgentData.getHighEntropyValues(['architecture', 'bitness', 'model', 'platformVersion',
+        'fullVersionList', 'uaFullVersion', 'wow64', 'formFactors']);
+    }).then(function (data) {
+      if (values['navigator.userAgentData.highEntropy']) return values;
+      values['navigator.userAgentData.highEntropy'] = {status: 'ok', valueType: 'object', value: data};
+      return values;
+    }, function (error) {
+      values['navigator.userAgentData.highEntropy'] = {status: error.name === 'NotAllowedError' ? 'blocked' : 'error',
+        errorName: error.name, reason: 'high_entropy_query_failed'};
+      return values;
+    });
+  }
+  var identityIds = ['language', 'languages', 'userAgent', 'appVersion', 'platform', 'vendor',
+    'hardwareConcurrency', 'deviceMemory', 'maxTouchPoints'].map(function (key) { return 'navigator.' + key; })
+    .concat(['Intl.DateTimeFormat.resolvedOptions', 'Date.timezoneOffset', 'navigator.userAgentData', 'navigator.userAgentData.highEntropy']);
+  function realmCollector(realm, ctx, runId, onValues) {
+    return new Promise(function (resolve, reject) {
+      var resource;
+      var channel = 'tb-api-probe';
+      function accept(data) {
+        if (ctx.alive() && data && data.channel === channel && data.runId === runId && data.realm === realm) {
+          onValues(data.values);
+          if (data.done) resolve();
+        }
+      }
+      var program = 'var send=function(values,done){var message=' +
+        JSON.stringify({channel: channel, runId: runId, realm: realm}) +
+        ';message.values=values;message.done=!!done;' + (realm === 'worker' ? 'self.postMessage' : 'parent.postMessage') +
+        '(message' + (realm === 'iframe' ? ',' + JSON.stringify(location.origin) : '') + ');};' +
+        '(' + identityCollector.toString() + ')(function(values){send(values,false);}).then(function(values){send(values,true);});';
+      if (realm === 'worker') {
+        if (typeof Worker !== 'function') { reject(issue('unsupported', 'worker_missing')); return; }
+        var url = URL.createObjectURL(new Blob([program], {type: 'application/javascript'}));
+        ctx.defer(function () { URL.revokeObjectURL(url); });
+        resource = new Worker(url);
+        ctx.defer(function () { resource.terminate(); });
+        resource.onmessage = function (message) { accept(message.data); };
+        resource.onerror = function (error) { error.preventDefault(); reject(issue('error', 'worker_execution_failed')); };
+      } else {
+        resource = document.createElement('iframe');
+        resource.id = 'tb-probe-frame';
+        resource.hidden = true;
+        resource.title = 'API probe realm';
+        function listener(message) { if (message.source === resource.contentWindow && message.origin === location.origin) accept(message.data); }
+        window.addEventListener('message', listener);
+        ctx.defer(function () { window.removeEventListener('message', listener); resource.remove(); });
+        resource.srcdoc = '<!doctype html><meta charset="utf-8"><script>' + program + '<' + '/script>';
+        document.body.appendChild(resource);
+      }
+      ctx.signal.addEventListener('abort', function () { reject(issue('cancelled', 'run_superseded')); }, {once: true});
+    });
+  }
+  function runRealm(realm, token) {
+    var results = identityIds.map(function (id) {
+      return add({id: id, category: '身份 / 区域', mode: id === 'navigator.userAgentData.highEntropy' ? 'invoke' : 'read'}, realm);
+    });
+    var started = performance.now();
+    var runId = state.runId;
+    var probe = {id: 'realm.bootstrap', category: '执行环境', mode: 'invoke', run: function (ctx) {
+      return realmCollector(realm, ctx, runId, function (values) {
+        if (generation !== token || !ctx.alive()) return;
+        results.forEach(function (result) {
+          var data = values[result.id];
+          if (!data) return;
+          result.status = data.status;
+          result.reasonCode = data.reason || (result.status === 'unsupported' ? 'api_missing' :
+            result.status === 'ok' ? 'read_completed' : 'exception');
+          if (has(data, 'valueType')) { result.valueType = data.valueType; result.value = data.value; }
+          if (data.errorName) result.errorName = data.errorName;
+          updateRow(result);
+        });
+      });
+    }};
+    var bootstrap = add(probe, realm);
+    return execute(probe, bootstrap, token).then(function () {
+      if (generation !== token) return;
+      results.forEach(function (result) {
+        if (result.status === 'pending') {
+          result.status = bootstrap.status === 'ok' ? 'error' : bootstrap.status;
+          result.reasonCode = bootstrap.status === 'ok' ? 'realm_result_missing' : bootstrap.reasonCode;
+          if (bootstrap.errorName) result.errorName = bootstrap.errorName;
+        }
+        result.elapsedMs = Math.round(performance.now() - started);
+        event('api_probe.item.finished', result);
+        updateRow(result);
+      });
+    });
+  }
+
+  function probes() {
+    var list = [];
+    function read(id, category, fn, mode) { list.push({id: id, category: category, mode: mode || 'read', run: fn}); }
+    function property(object, key, prefix, category) {
+      read(prefix + '.' + key, category, function () {
+        if (!has(object, key)) throw issue('unsupported', 'api_missing');
+        return object[key];
+      });
+    }
+    function presence(id, category, get, methods) {
+      read(id, category, function () {
+        var object = available(get());
+        var result = {type: typeof object};
+        (methods || []).forEach(function (key) { result[key] = typeof object[key]; });
+        return result;
+      }, 'presence');
+    }
+    ['language', 'userAgent', 'appVersion', 'appName', 'appCodeName', 'platform', 'vendor', 'vendorSub',
+      'product', 'productSub', 'webdriver', 'pdfViewerEnabled', 'doNotTrack'].forEach(function (key) {
+      property(navigator, key, 'navigator', '身份 / 语言');
+    });
+    read('navigator.languages', '身份 / 语言', function () { return Array.from(available(navigator.languages)); });
+    read('navigator.userAgentData', '身份 / 语言', function () {
+      var data = available(navigator.userAgentData);
+      return {brands: data.brands, mobile: data.mobile, platform: data.platform};
+    });
+    read('navigator.userAgentData.highEntropy', '身份 / 语言', function () {
+      var data = available(navigator.userAgentData);
+      available(data.getHighEntropyValues);
+      return data.getHighEntropyValues(['architecture', 'bitness', 'model', 'platformVersion',
+        'fullVersionList', 'uaFullVersion', 'wow64', 'formFactors']);
+    }, 'invoke');
+    ['plugins', 'mimeTypes'].forEach(function (key) {
+      read('navigator.' + key, '身份 / 语言', function () {
+        return Array.from(available(navigator[key])).map(function (item) {
+          return key === 'plugins' ? {name: item.name, filename: item.filename, description: item.description} :
+            {type: item.type, suffixes: item.suffixes, description: item.description};
+        });
+      });
+    });
+    read('window.chrome', '身份 / 语言', function () {
+      var chrome = available(window.chrome);
+      var result = {};
+      Object.getOwnPropertyNames(chrome).sort().forEach(function (key) {
+        var descriptor = Object.getOwnPropertyDescriptor(chrome, key);
+        result[key] = {type: has(descriptor, 'value') ? typeof descriptor.value : 'accessor',
+          enumerable: descriptor.enumerable, configurable: descriptor.configurable};
+      });
+      return result;
+    });
+    read('navigator.language.descriptor', '身份 / 语言', function () {
+      var target = navigator;
+      var depth = 0;
+      while (target) {
+        var descriptor = Object.getOwnPropertyDescriptor(target, 'language');
+        if (descriptor) return {prototypeDepth: depth, enumerable: descriptor.enumerable,
+          configurable: descriptor.configurable, getter: typeof descriptor.get, setter: typeof descriptor.set,
+          valueType: has(descriptor, 'value') ? typeof descriptor.value : null};
+        target = Object.getPrototypeOf(target); depth++;
+      }
+      throw issue('unsupported', 'descriptor_missing');
+    });
+    read('Intl.DateTimeFormat.resolvedOptions', '区域 / 设备', function () { return Intl.DateTimeFormat().resolvedOptions(); });
+    read('Intl.NumberFormat.resolvedOptions', '区域 / 设备', function () { return Intl.NumberFormat().resolvedOptions(); });
+    read('Date.timezoneOffset', '区域 / 设备', function () { return new Date().getTimezoneOffset(); });
+    ['hardwareConcurrency', 'deviceMemory', 'maxTouchPoints'].forEach(function (key) { property(navigator, key, 'navigator', '区域 / 设备'); });
+    ['width', 'height', 'availWidth', 'availHeight', 'availLeft', 'availTop', 'colorDepth', 'pixelDepth']
+      .forEach(function (key) { property(screen, key, 'screen', '屏幕 / 窗口'); });
+    ['innerWidth', 'innerHeight', 'outerWidth', 'outerHeight', 'screenX', 'screenY', 'devicePixelRatio', 'isSecureContext', 'crossOriginIsolated']
+      .forEach(function (key) { property(window, key, 'window', '屏幕 / 窗口'); });
+    read('screen.orientation', '屏幕 / 窗口', function () {
+      var o = available(screen.orientation); return {type: o.type, angle: o.angle};
+    });
+    read('window.visualViewport', '屏幕 / 窗口', function () {
+      var v = available(window.visualViewport);
+      return {width: v.width, height: v.height, scale: v.scale, offsetLeft: v.offsetLeft, offsetTop: v.offsetTop, pageLeft: v.pageLeft, pageTop: v.pageTop};
+    });
+    ['(pointer: coarse)', '(pointer: fine)', '(hover: hover)', '(any-hover: hover)',
+      '(prefers-color-scheme: dark)', '(prefers-reduced-motion: reduce)', '(color-gamut: p3)', '(display-mode: standalone)']
+      .forEach(function (query) { read('matchMedia.' + query, '屏幕 / 窗口', function () { return matchMedia(query).matches; }); });
+    property(navigator, 'onLine', 'navigator', '网络 / 电量');
+    read('navigator.connection', '网络 / 电量', function () {
+      var c = available(navigator.connection);
+      var result = {};
+      ['type', 'effectiveType', 'downlink', 'downlinkMax', 'rtt', 'saveData'].forEach(function (key) { if (has(c, key)) result[key] = c[key]; });
+      return result;
+    });
+    read('navigator.getBattery', '网络 / 电量', function () {
+      available(navigator.getBattery);
+      return navigator.getBattery().then(function (b) {
+        return {charging: b.charging, level: b.level,
+          chargingTime: Number.isFinite(b.chargingTime) ? b.chargingTime : String(b.chargingTime),
+          dischargingTime: Number.isFinite(b.dischargingTime) ? b.dischargingTime : String(b.dischargingTime)};
+      });
+    }, 'invoke');
+    property(navigator, 'cookieEnabled', 'navigator', '存储');
+    ['localStorage', 'sessionStorage'].forEach(function (key) {
+      read('window.' + key, '存储', function () {
+        var storage = available(window[key]);
+        var marker = '__tb_api_probe_' + state.runId;
+        try {
+          storage.setItem(marker, 'testbed');
+          if (storage.getItem(marker) !== 'testbed') throw issue('error', 'storage_readback_mismatch');
+          return {write: true, read: true};
+        } finally { storage.removeItem(marker); }
+      }, 'invoke');
+    });
+    read('navigator.storage.estimate', '存储', function () { return available(navigator.storage).estimate(); }, 'invoke');
+    read('navigator.storage.persisted', '存储', function () { return available(navigator.storage).persisted(); }, 'invoke');
+    read('window.indexedDB', '存储', function (ctx) {
+      var factory = available(window.indexedDB);
+      var name = '__tb_api_probe_' + state.runId;
+      return new Promise(function (resolve, reject) {
+        var db;
+        var deletion;
+        function cleanup() {
+          if (db) db.close();
+          if (!deletion) deletion = new Promise(function (done, fail) {
+            var request = factory.deleteDatabase(name);
+            request.onsuccess = function () { done(); };
+            request.onerror = function () { fail(request.error); };
+            request.onblocked = function () { fail(issue('blocked', 'storage_cleanup_blocked')); };
+          });
+          return deletion;
+        }
+        ctx.defer(cleanup);
+        var request = factory.open(name, 1);
+        request.onupgradeneeded = function () {
+          if (!ctx.alive()) { request.transaction.abort(); return; }
+          request.result.createObjectStore('probe');
+        };
+        request.onerror = function () { reject(request.error); };
+        request.onblocked = function () { reject(issue('blocked', 'storage_open_blocked')); };
+        request.onsuccess = function () {
+          db = request.result;
+          if (!ctx.alive()) { db.close(); return; }
+          var transaction = db.transaction('probe', 'readwrite');
+          var store = transaction.objectStore('probe');
+          store.put('testbed', 'marker');
+          var value = store.get('marker');
+          transaction.oncomplete = function () {
+            if (value.result !== 'testbed') { reject(issue('error', 'storage_readback_mismatch')); return; }
+            cleanup().then(function () { resolve({write: true, read: true, cleaned: true}); }, reject);
+          };
+          transaction.onabort = function () { reject(transaction.error || issue('error', 'transaction_aborted')); };
+        };
+      });
+    }, 'invoke');
+    read('window.caches', '存储', function (ctx) {
+      var cacheStorage = available(window.caches);
+      var name = '__tb_api_probe_' + state.runId;
+      var request = new Request(new URL('__tb_api_probe_marker__', location.href).href);
+      ctx.defer(function () { return cacheStorage.delete(name); });
+      return cacheStorage.open(name).then(function (cache) {
+        if (!ctx.alive()) return cacheStorage.delete(name).then(function () { throw issue('cancelled', 'run_superseded'); });
+        return cache.put(request, new Response('testbed')).then(function () { return cache.match(request); });
+      }).then(function (response) { return response && response.text(); }).then(function (value) {
+        if (value !== 'testbed') throw issue('error', 'storage_readback_mismatch');
+        return cacheStorage.delete(name).then(function (deleted) {
+          if (!deleted && ctx.alive()) throw issue('error', 'storage_cleanup_failed');
+          return {write: true, read: true, cleaned: true};
+        });
+      });
+    }, 'invoke');
+    presence('navigator.permissions', '权限 / 能力', function () { return navigator.permissions; }, ['query']);
+    ['geolocation', 'notifications', 'camera', 'microphone', 'clipboard-read', 'clipboard-write',
+      'persistent-storage', 'background-sync', 'accelerometer', 'gyroscope', 'magnetometer', 'midi', 'payment-handler', 'window-management']
+      .forEach(function (name) {
+        read('permissions.' + name, '权限 / 能力', function () {
+          available(navigator.permissions);
+          return navigator.permissions.query({name: name}).then(function (permission) { return permission.state; }, function (error) {
+            if (error.name === 'TypeError') {
+              var unsupported = issue('unsupported', 'permission_query_unsupported');
+              unsupported.name = error.name;
+              throw unsupported;
+            }
+            throw error;
+          });
+        }, 'invoke');
+      });
+    [
+      ['navigator.geolocation', function () { return navigator.geolocation; }, ['getCurrentPosition', 'watchPosition']],
+      ['window.Notification', function () { return window.Notification; }, ['requestPermission']],
+      ['navigator.clipboard', function () { return navigator.clipboard; }, ['readText', 'writeText']],
+      ['navigator.mediaDevices', function () { return navigator.mediaDevices; }, ['getUserMedia', 'enumerateDevices']],
+      ['navigator.bluetooth', function () { return navigator.bluetooth; }, ['getAvailability', 'requestDevice']],
+      ['navigator.usb', function () { return navigator.usb; }, ['getDevices', 'requestDevice']],
+      ['navigator.serial', function () { return navigator.serial; }, ['getPorts', 'requestPort']],
+      ['navigator.hid', function () { return navigator.hid; }, ['getDevices', 'requestDevice']],
+      ['window.PaymentRequest', function () { return window.PaymentRequest; }],
+      ['window.PushManager', function () { return window.PushManager; }],
+      ['navigator.serviceWorker', function () { return navigator.serviceWorker; }, ['register', 'getRegistrations']],
+      ['window.Worker', function () { return window.Worker; }],
+      ['window.SharedWorker', function () { return window.SharedWorker; }],
+      ['window.RTCPeerConnection', function () { return window.RTCPeerConnection; }],
+      ['window.AudioContext', function () { return window.AudioContext; }],
+      ['window.OffscreenCanvas', function () { return window.OffscreenCanvas; }],
+      ['window.WebAssembly', function () { return window.WebAssembly; }, ['compile', 'instantiate']],
+      ['window.crypto', function () { return window.crypto; }, ['getRandomValues', 'randomUUID']],
+      ['crypto.subtle', function () { return window.crypto && window.crypto.subtle; }, ['digest']]
+    ].forEach(function (entry) { presence(entry[0], '权限 / 能力', entry[1], entry[2]); });
+    read('Notification.permission', '权限 / 能力', function () { return available(window.Notification).permission; });
+    read('navigator.bluetooth.getAvailability', '权限 / 能力', function () {
+      var bluetooth = available(navigator.bluetooth);
+      available(bluetooth.getAvailability);
+      return bluetooth.getAvailability();
+    }, 'invoke');
+    read('canvas.2d', '图形 / 媒体', function () {
+      var canvas = document.createElement('canvas'); canvas.width = 4; canvas.height = 4;
+      var c = available(canvas.getContext('2d'));
+      c.fillStyle = '#19764b'; c.fillRect(0, 0, 4, 4);
+      return {pixel: Array.from(c.getImageData(0, 0, 1, 1).data), textWidth: c.measureText('Chrome WebView').width};
+    }, 'invoke');
+    ['webgl', 'webgl2'].forEach(function (kind) {
+      read('canvas.' + kind, '图形 / 媒体', function (ctx) {
+        var canvas = document.createElement('canvas');
+        var gl = available(canvas.getContext(kind));
+        ctx.defer(function () { var extension = gl.getExtension('WEBGL_lose_context'); if (extension) extension.loseContext(); });
+        var info = {version: gl.getParameter(gl.VERSION), vendor: gl.getParameter(gl.VENDOR), renderer: gl.getParameter(gl.RENDERER),
+          shadingLanguage: gl.getParameter(gl.SHADING_LANGUAGE_VERSION), maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+          maxViewportDims: Array.from(gl.getParameter(gl.MAX_VIEWPORT_DIMS)), extensions: gl.getSupportedExtensions()};
+        var debug = gl.getExtension('WEBGL_debug_renderer_info');
+        if (debug) { info.unmaskedVendor = gl.getParameter(debug.UNMASKED_VENDOR_WEBGL); info.unmaskedRenderer = gl.getParameter(debug.UNMASKED_RENDERER_WEBGL); }
+        return info;
+      }, 'invoke');
+    });
+    read('media.canPlayType', '图形 / 媒体', function () {
+      var video = document.createElement('video');
+      var audio = document.createElement('audio');
+      var result = {};
+      ['video/mp4; codecs="avc1.42E01E"', 'video/webm; codecs="vp9"'].forEach(function (type) { result[type] = video.canPlayType(type); });
+      ['audio/mpeg', 'audio/ogg; codecs="opus"', 'audio/mp4; codecs="mp4a.40.2"'].forEach(function (type) { result[type] = audio.canPlayType(type); });
+      return result;
+    }, 'invoke');
+    read('navigator.mediaCapabilities.decodingInfo', '图形 / 媒体', function () {
+      return available(navigator.mediaCapabilities).decodingInfo({type: 'file', video: {
+        contentType: 'video/mp4; codecs="avc1.42E01E"', width: 640, height: 360, bitrate: 500000, framerate: 30
+      }}).then(function (info) { return {supported: info.supported, smooth: info.smooth, powerEfficient: info.powerEfficient}; });
+    }, 'invoke');
+    read('crypto.getRandomValues', '图形 / 媒体', function () {
+      var bytes = new Uint8Array(16); crypto.getRandomValues(bytes); return {byteLength: bytes.length};
+    }, 'invoke');
+    read('crypto.subtle.digest', '图形 / 媒体', function () {
+      return available(crypto.subtle).digest('SHA-256', new TextEncoder().encode('landing-testbed')).then(function (buffer) {
+        return Array.from(new Uint8Array(buffer)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      });
+    }, 'invoke');
+    read('WebAssembly.validate', '图形 / 媒体', function () {
+      return available(window.WebAssembly).validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]));
+    }, 'invoke');
+    return list;
+  }
+  function manualProbes() {
+    function manual(id, label, run) { return {id: id, api: id, label: label, category: '手动授权', manual: true, mode: 'invoke', run: run}; }
+    function media(kind, ctx) {
+      var devices = available(navigator.mediaDevices);
+      var constraints = kind === 'video' ? {video: true, audio: false} : {audio: true, video: false};
+      return devices.getUserMedia(constraints).then(function (stream) {
+        var tracks = stream.getTracks();
+        // A permission prompt can settle after our deadline or after a new run starts.
+        tracks.forEach(function (track) { track.stop(); });
+        if (!ctx.alive()) throw issue('cancelled', 'late_permission_result');
+        return {tracks: tracks.map(function (track) { return {kind: track.kind, readyState: track.readyState}; }), stopped: true};
+      });
+    }
+    return [
+      manual('manual.geolocation', '定位', function () {
+        return new Promise(function (resolve, reject) {
+          available(navigator.geolocation).getCurrentPosition(function (position) {
+            resolve({received: true, accuracyMeters: position.coords.accuracy});
+          }, function (error) {
+            reject(issue(error.code === 1 ? 'blocked' : error.code === 3 ? 'timeout' : 'error',
+              error.code === 1 ? 'geolocation_permission_denied' : error.code === 3 ? 'geolocation_timeout' : 'position_unavailable'));
+          }, {timeout: MANUAL_TIMEOUT, maximumAge: 0});
+        });
+      }),
+      manual('manual.camera', '摄像头', function (ctx) { return media('video', ctx); }),
+      manual('manual.microphone', '麦克风', function (ctx) { return media('audio', ctx); }),
+      manual('manual.notifications', '通知授权', function () {
+        return available(window.Notification).requestPermission().then(function (permission) {
+          if (permission === 'denied') throw issue('blocked', 'notification_permission_denied');
+          if (permission !== 'granted') throw issue('blocked', 'notification_permission_not_granted');
+          return permission;
+        });
+      }),
+      manual('manual.clipboard.read', '读取剪贴板（仅长度）', function () {
+        return available(navigator.clipboard).readText().then(function (text) { return {characterCount: text.length}; });
+      }),
+      manual('manual.clipboard.write', '写入剪贴板（测试文本）', function () {
+        return available(navigator.clipboard).writeText('Landing Testbed clipboard probe').then(function () { return {written: true}; });
+      }),
+      manual('manual.audioContext', '启动音频上下文', function (ctx) {
+        var Constructor = available(window.AudioContext);
+        var audio = new Constructor();
+        ctx.defer(function () { if (audio.state !== 'closed') return audio.close(); });
+        return audio.resume().then(function () {
+          if (!ctx.alive()) throw issue('cancelled', 'late_permission_result');
+          var info = {state: audio.state, sampleRate: audio.sampleRate, baseLatency: audio.baseLatency};
+          return audio.close().then(function () { info.closed = true; return info; });
+        });
+      })
+    ];
+  }
+  function begin() {
+    if (state) {
+      event('api_probe.run.cancelled', null, 'run_superseded');
+      Array.from(state.active).forEach(function (ctx) { ctx.close(); });
+    }
+    var token = ++generation;
+    state = {runId: 'tb-' + Date.now().toString(36) + '-' + generation, startedAt: new Date().toISOString(),
+      finishedAt: null, phase: 'running', results: [], events: [], active: new Set()};
+    rows.clear(); body.textContent = '';
+    notice.textContent = '';
+    document.getElementById('tb-copy-fallback').hidden = true;
+    document.getElementById('tb-manual-actions').textContent = '';
+    event('api_probe.run.started', null, 'automatic');
+    var pending = probes().map(function (probe) { return execute(probe, add(probe, 'main'), token); });
+    manualProbes().forEach(function (probe) {
+      var result = add(probe, 'main');
+      var button = document.createElement('button');
+      button.id = 'tb-' + probe.id.replace(/\./g, '-');
+      button.type = 'button'; button.textContent = probe.label;
+      button.addEventListener('click', function () {
+        button.disabled = true;
+        event('api_probe.manual.started', result);
+        execute(probe, result, token).then(function () { if (generation === token) button.disabled = false; });
+      });
+      document.getElementById('tb-manual-actions').appendChild(button);
+    });
+    pending.push(runRealm('iframe', token), runRealm('worker', token));
+    Promise.all(pending).then(function () {
+      if (generation !== token) return;
+      state.phase = 'complete'; state.finishedAt = new Date().toISOString();
+      event('api_probe.run.finished', null, 'automatic_complete');
+      render();
+    });
+    render();
+  }
+  Object.keys(STATUS).forEach(function (key) {
+    var option = document.createElement('option'); option.value = key; option.textContent = STATUS[key];
+    document.getElementById('tb-status-filter').appendChild(option);
+  });
+  ['tb-search', 'tb-status-filter', 'tb-realm-filter'].forEach(function (id) {
+    document.getElementById(id).addEventListener(id === 'tb-search' ? 'input' : 'change', render);
+  });
+  document.getElementById('tb-rerun').addEventListener('click', begin);
+  document.getElementById('tb-copy').addEventListener('click', function () {
+    var token = generation;
+    var json = JSON.stringify(snapshot(), null, 2);
+    function fallback() {
+      if (token !== generation) return;
+      var field = document.getElementById('tb-copy-fallback'); field.value = json; field.hidden = false;
+      notice.textContent = '剪贴板不可用，当前 JSON 已显示在下方。';
+      event('api_probe.copy.finished', null, 'clipboard_unavailable');
+    }
+    try {
+      available(navigator.clipboard).writeText(json).then(function () {
+        if (token !== generation) return;
+        notice.textContent = '已复制当前检测结果';
+        document.getElementById('tb-copy-fallback').hidden = true;
+        event('api_probe.copy.finished', null, 'copied');
+      }, fallback);
+    } catch (error) { fallback(); }
+  });
+  window.addEventListener('pagehide', function () {
+    if (state) Array.from(state.active).forEach(function (ctx) { ctx.close(); });
+  });
+  begin();
+})();
+</script>
+</body>
+</html>
